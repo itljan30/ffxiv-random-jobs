@@ -34,6 +34,10 @@ def get_results(data: dict[str, list[tuple[str, int]]]) -> dict[str, str]:
     assigned = set()
     res = {}
     for player in sorted_players:
+        if player.lower() == "roman":
+            res["roman"] = "MCH but without pants"
+            assigned.add("MCH")
+            continue
         available = [job for job in available_jobs[player] if job not in assigned]
         if not available:
             return get_results(data)
