@@ -19,31 +19,31 @@ def read_jobs_files(f: str) -> dict[str, list[tuple[str, int]]]:
     columns = reader.columns
     for _, row in reader.iterrows():
         job_name = row["JOB"]
-        for col in columns:
-            if col != "JOB":
-                if row[col] != "-":
-                    player_data = (job_name, str(row[col]))
-                    res[str(col)].append(player_data)
+        for col in [c for c in columns if c != "JOB" and row[c] != "-"]:
+             player_data = (job_name, row[col])
+             res[str(col)].append(player_data)
+
 
     return res
 
 def get_results(data: dict[str, list[tuple[str, int]]]) -> dict[str, str]:
-    available_jobs = {player : [job for job, _weight in jobs] for player, jobs in data.items()}
+    JOB = 0
+    WEIGHT = 1
+
+    available_jobs = {player : [(job, weight) for job, weight in jobs] for player, jobs in data.items()}
     sorted_players = sorted(available_jobs.keys(), key=lambda p: len(available_jobs[p]))
 
     assigned = set()
     res = {}
     for player in sorted_players:
-        if player.lower() == "roman":
-            res["roman"] = "MCH but without pants"
-            assigned.add("MCH")
-            continue
-        available = [job for job in available_jobs[player] if job not in assigned]
+        available = [job for job in available_jobs[player] if job[JOB] not in assigned]
+        jobs = [data[JOB] for data in available]
+        weights = [WEIGHT / (int(data[WEIGHT]) + WEIGHT) for data in available]
         if not available:
             return get_results(data)
-        chosen_job = random.choice(available)
+        chosen_job = random.choices(jobs, weights=weights)
+        assigned.add(chosen_job[JOB])
         res[player] = chosen_job
-        assigned.add(chosen_job)
 
     return res
 
